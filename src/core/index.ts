@@ -8,6 +8,7 @@ export * from './types'
 export * from './random'
 export * from './assign'
 export * from './modes'
+export * from './winloss'
 
 export interface GenerateOptions {
   mode: Mode

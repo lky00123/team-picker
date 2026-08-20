@@ -33,6 +33,18 @@ export interface HistoryEntry {
   mode: Mode
   /** [ [redIds], [blueIds] ] */
   teamIds: [string[], string[]]
+  /** 胜方: 0=红 1=蓝 null=未记录/平 */
+  winner?: 0 | 1 | null
+}
+
+/** 胜负统计结果 */
+export interface WinStat {
+  id: string
+  name: string
+  games: number
+  wins: number
+  rate: number
+  streak: number // 当前连败(负数=连胜)
 }
 
 export interface SplitResult {

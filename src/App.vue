@@ -11,6 +11,9 @@ import {
 import type { Player, Teams, HistoryEntry, Mode, GameSize } from './core'
 import ResultBoard from './components/ResultBoard.vue'
 import HistoryList from './components/HistoryList.vue'
+import WinStats from './components/WinStats.vue'
+import { drawShareCard, downloadShareCard } from './components/ShareCard'
+import { rotateBench, winStats } from './core'
 
 // ---------- 状态 ----------
 const roster = ref<Player[]>([])          // 全部名单
@@ -81,11 +84,21 @@ function lsLoad() {
       const d = JSON.parse(raw)
       roster.value = d.roster ?? []
       history.value = d.history ?? []
+      // 恢复上次配置(规模/模式/勾选)
+      if (d.size) size.value = d.size
+      if (d.mode) mode.value = d.mode
+      if (d.selectedIds?.length) selected.value = new Set(d.selectedIds)
     }
   } catch { /* 忽略 */ }
 }
-watch([roster, history], () => {
-  localStorage.setItem('team-picker', JSON.stringify({ roster: roster.value, history: history.value }))
+watch([roster, history, selected, size, mode], () => {
+  localStorage.setItem('team-picker', JSON.stringify({
+    roster: roster.value,
+    history: history.value,
+    size: size.value,
+    mode: mode.value,
+    selectedIds: [...selected.value],
+  }))
 }, { deep: true })
 
 onMounted(async () => {
@@ -209,9 +222,36 @@ function swapPlayer(id: string) {
   result.value = { ...result.value, red: newRed, blue: newBlue, note: '已手动调整(种子失效)' }
 }
 
+// ---------- 胜负标记 + 替补轮换 ----------
+function markWin(side: 0 | 1) {
+  if (!result.value || !history.value.length) return
+  history.value[history.value.length - 1].winner = side
+  result.value = { ...result.value, note: side === 0 ? '🏆 红队胜' : '🏆 蓝队胜' }
+  API.save()
+  say(side === 0 ? '已记录: 红队胜' : '已记录: 蓝队胜')
+}
+
+function doRotateBench() {
+  if (!result.value) return
+  const last = history.value[history.value.length - 1]
+  if (last?.winner == null) { say('先标记胜负再轮换'); return }
+  const stats = winStats(history.value, roster.value)
+  const r = rotateBench(result.value.red, result.value.blue, bench.value, last.winner, stats)
+  result.value = { ...result.value, red: r.red, blue: r.blue, note: r.note }
+  bench.value = r.bench
+  say(r.note)
+}
+
+// ---------- 分享 ----------
+function share() {
+  if (!result.value) return
+  downloadShareCard(drawShareCard(result.value, size.value))
+  say('已生成分享图(查看下载)')
+}
+
 // ---------- 清理 ----------
 function clearHistory() {
-  if (confirm('清空全部对局历史?')) { history.value = []; API.save() }
+  if (confirm('清空全部对局历史(含胜负)?')) { history.value = []; API.save() }
 }
 </script>
 
@@ -304,6 +344,17 @@ function clearHistory() {
   <!-- 结果 -->
   <ResultBoard v-if="result" :result="result" :animating="animating" :score-on="scoreOn"
     @swap="swapPlayer" @join="joinOne" @leave="leaveOne" />
+
+  <!-- 胜负 + 轮换 + 分享 (有结果时显示) -->
+  <div v-if="result" class="card" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:-6px">
+    <button class="btn-ghost" style="flex:1; border:1px solid rgba(229,72,77,.5)" @click="markWin(0)">🔴 红胜</button>
+    <button class="btn-ghost" style="flex:1; border:1px solid rgba(62,99,221,.5)" @click="markWin(1)">🔵 蓝胜</button>
+    <button v-if="bench.length" class="btn-ghost" style="flex:1" @click="doRotateBench">🔄 替补轮换</button>
+    <button class="btn-ghost" style="flex:1; border:1px solid rgba(245,197,24,.5)" @click="share">📤 分享图</button>
+  </div>
+
+  <!-- 胜率榜 -->
+  <WinStats :history="history" :roster="roster" />
 
   <!-- 历史 -->
   <HistoryList :history="history" :roster="roster" @clear="clearHistory" />
