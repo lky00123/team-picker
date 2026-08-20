@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/core/assign.ts","./src/core/index.ts","./src/core/modes.ts","./src/core/random.ts","./src/core/types.ts","./tests/core.test.ts"],"version":"5.9.3"}

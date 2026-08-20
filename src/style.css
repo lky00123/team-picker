@@ -1,0 +1,65 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #e5484d;
+  --blue: #3e63dd;
+  --bg: #0f1115;
+  --card: #1a1d24;
+  --card-2: #22262f;
+  --text: #e8eaed;
+  --text-dim: #9aa0a6;
+  --accent: #f5c518;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  min-height: 100vh;
+}
+
+#app { max-width: 720px; margin: 0 auto; padding: 16px 16px 48px; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  transition: transform .1s, opacity .15s;
+}
+button:active { transform: scale(.96); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+
+input, select {
+  font-family: inherit;
+  background: var(--card-2);
+  color: var(--text);
+  border: 1px solid #33384200;
+  border-radius: 8px;
+  padding: 8px 10px;
+  outline: none;
+}
+input:focus { border-color: var(--accent); }
+
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #1a1d24;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 14px 0;
+  width: 100%;
+}
+.btn-ghost {
+  background: var(--card-2);
+  color: var(--text-dim);
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.btn-danger { background: transparent; color: var(--red); padding: 4px 8px; font-size: 12px; }
