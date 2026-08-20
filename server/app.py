@@ -67,6 +67,10 @@ if os.path.isdir(DIST):
     @app.get('/')
     def index():
         return FileResponse(os.path.join(DIST, 'index.html'))
+
+    @app.get('/bg.mp4')
+    def bg_video():
+        return FileResponse(os.path.join(DIST, 'bg.mp4'), media_type='video/mp4')
 else:
     @app.get('/')
     def no_dist():
