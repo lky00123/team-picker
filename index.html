@@ -8,10 +8,29 @@
   </head>
   <body>
     <!-- 视频背景: 自动播放/循环/静音, 置于内容层之下 -->
-    <video autoplay loop muted playsinline class="bg-video">
+    <video autoplay loop muted playsinline preload="auto" class="bg-video" id="bgVideo">
       <source src="./bg.mp4" type="video/mp4" />
     </video>
     <div id="app"></div>
+    <script>
+      // 浏览器自动播放策略兜底: 任何时机被暂停就尝试续播
+      ;(function () {
+        var v = document.getElementById('bgVideo')
+        function tryPlay() {
+          v.play().catch(function (e) {
+            console.warn('[bg] autoplay blocked:', e.name)
+            // 用户首次交互后续播
+            document.addEventListener('click', function once() {
+              v.play().catch(function () {})
+              document.removeEventListener('click', once)
+            }, { once: true })
+          })
+        }
+        v.addEventListener('canplay', tryPlay)
+        v.addEventListener('pause', function () { if (!v.ended) tryPlay() })
+        window.addEventListener('load', tryPlay)
+      })()
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
